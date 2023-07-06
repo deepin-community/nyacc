@@ -1,5 +1,96 @@
-template-repository (1.0-1) unstable; urgency=medium
+nyacc (1.06.7-1) experimental; urgency=medium
 
-  * Initial release
+  * New upstream release.
+  * debian/copyright: Update for 1.06.7.
 
- -- Tsic404 <liuheng@deepin.org>  Sat, 28 Jan 2023 13:46:49 +0800
+ -- Vagrant Cascadian <vagrant@debian.org>  Fri, 25 Mar 2022 12:39:09 -0700
+
+nyacc (1.06.4-1) experimental; urgency=medium
+
+  * New upstream release.
+  * debian/copyright: Update for 1.06.4.
+
+ -- Vagrant Cascadian <vagrant@debian.org>  Tue, 04 Jan 2022 19:29:35 -0800
+
+nyacc (1.03.0-1) experimental; urgency=medium
+
+  * New upstream release.
+  * debian/copyright: Remove redundant stanza for doc/nyacc-ug.*
+
+ -- Vagrant Cascadian <vagrant@debian.org>  Wed, 02 Sep 2020 21:45:08 -0700
+
+nyacc (1.02.2-1) experimental; urgency=medium
+
+  * New upstream release.
+  * debian/copyright: Update for new version.
+  * debian/patches/info: Refresh patch.
+  * Remove lintian overrides for guile byte-compiled objects.
+  * debian/control:
+    - Update to guile-3.0
+    - Add versioned dependencies to guile-bytestructures.
+    - Upgrade debhelper compat to 13.
+
+ -- Vagrant Cascadian <vagrant@debian.org>  Mon, 06 Jul 2020 11:49:36 -0700
+
+nyacc (1.00.2-5) unstable; urgency=medium
+
+  * debian/control: Remove explicit branch in Vcs-Git header.
+
+ -- Vagrant Cascadian <vagrant@debian.org>  Tue, 04 Jan 2022 18:06:04 -0800
+
+nyacc (1.00.2-4) unstable; urgency=medium
+
+  * debian/rules: Disable parallelism to improve reproducibility.
+  * debian/control: Update to Standards-Version 4.6.0, no changes needed.
+
+ -- Vagrant Cascadian <vagrant@debian.org>  Tue, 04 Jan 2022 17:44:43 -0800
+
+nyacc (1.00.2-3) unstable; urgency=medium
+
+  * Remove lintian overrides for guile byte-copiled objects, no longer
+    needed with newer lintian versions.
+  * debian/control: Update to guile-3.0 and add versioned dependencies to
+    guile-bytestructures (Closes: #969702).
+  * debian/control: Upgrade debhelper compat to 13.
+  * debian/copyright: Remove redundant stanza for doc/nyacc-ug.*
+
+ -- Vagrant Cascadian <vagrant@debian.org>  Sun, 01 Nov 2020 13:07:11 -0800
+
+nyacc (1.00.2-2) unstable; urgency=medium
+
+  * debian/control: Update to Standards-Version 4.5.0.
+  * debian/copyright: Update missing copyright year.
+
+ -- Vagrant Cascadian <vagrant@debian.org>  Thu, 23 Jan 2020 16:21:58 -0800
+
+nyacc (1.00.2-1) experimental; urgency=medium
+
+  * New upstream release.
+  * debian/patches: Update info patch.
+  * debian/copyright: Update for 1.00.2.
+
+ -- Vagrant Cascadian <vagrant@debian.org>  Wed, 15 Jan 2020 22:10:54 -0800
+
+nyacc (0.99.2-1) unstable; urgency=medium
+
+  * New upstream version.
+  * Update info patch and copyright file for relocation of nyacc-fh-ug and
+    add nyacc-c99-ug.
+  * debian/control:
+    - Add Rules-Requires-Root: no.
+    - Update Standards-Version to 4.4.1.
+
+ -- Vagrant Cascadian <vagrant@debian.org>  Tue, 19 Nov 2019 23:48:52 -0800
+
+nyacc (0.94.0-2) unstable; urgency=medium
+
+  * debian/control: Add Build-Depends on guile-bytestructures.
+  * debian/control: Add Vcs-Git and Vcs-Browser.
+
+ -- Vagrant Cascadian <vagrant@debian.org>  Sat, 20 Jul 2019 00:40:45 -0300
+
+nyacc (0.94.0-1) experimental; urgency=low
+
+  * Initial release.
+
+ -- Vagrant Cascadian <vagrant@debian.org>  Sun, 14 Jul 2019 22:35:41 -0300

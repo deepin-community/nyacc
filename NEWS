@@ -1,0 +1,335 @@
+Copyright (C) 2017-2021 Matthew R. Wette
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.
+
+2022-01-30  V1.06.7
+	* munge.scm: fix canize-enum-def-list
+
+2022-01-26  V1.06.6
+	* ffi-help.scm: add define to cpp-stmts forwarded to parser.
+	* cxeval.scm: eval-c99-cx should return #f on non-expr tree
+
+2022-01-11  V1.06.5
+	* Updated c99/util.scm merge-inc-files! and renamed to merge-includes!
+	* Align struct sizes to alignment in c99/cxeval.scm:  find-offsets.
+
+2021-12-20  V1.06.4
+	* update c99/munge to handle more cases for "keepers"
+
+2021-12-14  V1.06.3
+	* fix eval-offsetof
+	* in arch-info.scm:lookup-arch, use alignof-map for alignof-dict
+
+2021-12-10  V1.06.2
+	* in eval-c99-cx, look for idents in udict
+
+2021-12-06  V1.06.1
+	* fixed issues in cxeval wrt offsetof operator
+	  This includes removal of munge import.
+
+2021-12-03  V1.06.0
+	* Added location tracking to parser.
+	* In lang, added support for multiple archirectures using with-arch:
+	  (with-arch "i386" (sizeof-basetype "long")) => 4
+ 	* In c99, added work-in-progress  __builtin_offsetof operator
+	* Reworked c99/munge.scm: unitize-decl, now dictize-decl.
+
+2021-11-24  V1.05.1
+	* In ffi-helper, don't process udecls with zero-length name.
+	  This fixes the crash reported in guile-libyaml issue #3.
+
+2021-09-05  V1.05.0
+	* remove dependence on srfi-43, vector operations; this was
+	  causing issues with some Guile versions 2.0.X
+	* cleaned up c99-error exception messages in compile-ffi
+	* examples/ffi/termios.ffi: added def-keepers
+	* in following, $ENL = examples/nyacc/lang
+	* removed $ENL/ecmascript
+	* $ENL/javascript: merged body.scm into parser.scm
+	* install/uninstall read-line-code now returns #<unspecified>
+	* $ENL/tcl/parser.scm: fixed reading array index as number;
+	  (1,2,3) was read as number, now as string
+	* scripts/compile-ffi: add option -s to show includes being read
+	* c99 parser def-help now adds apple dependencies
+	* worked on ffi-helper per-decl usage (i.e. C-decl syntax)
+	* updated "make check" to provide overall sucess/fail message
+
+2021-05-30  V1.04.1 
+	* c99/mach.scm: added _Float128 type, as absense was causing
+	  ffi-helper runs to crash on #include <math.h>
+	* system/ffi-help-rt.scm: change unwrap for compound type
+	  to return pointer (was bytevector), so it is compatible w/
+	  expected arg to procedures returned from pointer->procedure
+	* c99/ffi-help.scm: change mtail->ffi-desc handle for structs
+	  to unitize struct fields (via clean-and-unitize-fields)
+	* above two updates closes bug #60697
+ 	* nyacc/lex.scm: add make-ident-keyword-reader
+
+2021-05-28  V1.04.0 
+	* in nyacc/lex.scm, changed signature of lex-generator extra-reader
+	  to (ch loop) from (ch), so that user-supplied routine can loop 
+	* nyacc/lang/c99/ffi-help.scm: clean up and added support for unions
+	  and anonymous arrays in structs.  This needs testing.  Considering 
+	  bug #60410 closed.  Anonymous structs unions are being augmented 
+	  with stubbed identifiers _1 ... _N (for now).
+	* Changed C99 emitted type-qual elements to use subelements instead
+	  of strings: (type-qual "restrict") -> (type-qual (restrict))
+
+2021-02-10  V1.03.7
+	* in ffi-help.scm: preserve (type-qual "const"), which is later
+	  used to generate constant.  Fix for bug #60474
+
+2021-02-10  V1.03.6
+	* in c99, changed how identifiers are evaluated in in dead code
+	  sections (via #ifdef) are handled.  Now using skip-macro so
+	  that dead macros are not evalated in case like
+	    #if FOO
+	    #define g_abort() abort()
+	    #else
+	    g_abort(void);
+	    #endif
+
+2021-02-09  V1.03.5
+	* script/compile-ffi.scm: use cond-expand to catch changes to
+	  compile-file between guile2 and guile3.  GUile-3 requires use
+	  of new keyword arg #:optimization-level in order to get -O0.
+	* the change in 1.03.4 to use 'code vs 'decl breaks the ffi-helper
+	  so reversed
+	* c99, in decl mode, no longer passes cpp-defines to nyacc/parser
+	* ffi/glib.ffi may return 'bad c literal' because 
+	  gobject/glib-types.h uses GLIB_DEPRECATED_FOR('G_TYPE_VARIANT')
+
+2021-01-02  V1.03.4
+	* c99/parser.scm: in decl mode, included files are parsed in 
+	  'code mode instead of 'decl mode.  This should not affect app's
+	  but deals with #if/#else where macro and function have different
+	  signatures: glib's #define g_abort() vs g_abort(void).
+	* c99/mach.scm: added missing case in enumerator:
+	    identifier attribute-specifiers "=" constant-expression
+	  used in glib/gspawn.h GSpawnError.
+	* c99/munge.scm: re-worked canize-enum-def-list to deal with 
+	  attributes
+	* c99/ffi-help.scm: added case for 'typedef foo_t *int;'
+	* c99/munge-base.scm: expand-typerefs, allow #f for declr, which
+	  occurs in anonymous structs/unions.
+	* lang/arch-info.scm: added lookup-arch => (sizeof-map . alignof-map)
+	* c99/parser.scm: added support for _Prama() in odd places.
+	* c99/mach.scm: added typeof as type specifier
+
+2020-11-26  V1.03.3
+	* cpp.scm: oops, fix not quiet right for no args -- hope this works
+
+2020-11-26  V1.03.2
+	* Added examples/nyacc/lang/java, with grammar and parser.
+	  There are limitations: parameterized types and annotations
+	  are not (fully) supported.  Generation of the sxml output
+	  AST is partially complete.
+	* lex.scm: parse C99 octals better
+	* cpp.scm: variadic arg ftn w/o args sets __VA_ARGS__ to ""
+	* cpp.scm: reworked collect-args for empty CPP function macros
+
+2020-10-20  V1.03.1
+	* Support was added for handling asm expressions in pretty-print-c99.
+	  This uses the GNU form and will add volatile option.
+	* Handling of asm in the c99 parser (c99/mach.scm) was updated to
+	  clean up the output syntax trees.
+	* nyacc/lang/util.scm init input-stack to '() (was #f)
+	* TODO: make-lalr-parser will build parser for mach's with 
+	  rrconf actions.
+	* ffi-helper generated scm files now use a promise to avoid 
+	  dynamic linking at compile time.
+	* added make-cstr-array to ffi-help-rt (thanks rekado!);
+	  updated uwrap~pointer to deal with bytevectors; previously
+	  undefined unwrap~array now defined to unwrap~pointer.
+	* ffi-helper generates fht-unwrap call for functions taking
+	  struct-ref: see bug 59307
+
+2020-07-19  V1.03.0
+	* nyacc/lang/c99/body.scm: don't tokenize input that would be
+	  unused when #ifdef'd out. Hope this makes parsing a bit faster.
+	  e.g., guild compile-ffi ffi/glib speedup from 12.0 s to 6.7 s.
+	* nyacc/lang/c99: merge body.scm into parser.scm
+	* nyacc/lex.scm: folded make-num-reader into read-c-num and added
+	  read-basic-num for other parsers (e.g., tcl).  Read-c-num will
+	  check for suffixes and raise exception.  read-basic-num just
+	  returns #f in this case.
+	* nyacc/lang/c99/mach.scm: changed arg-expr-hack rule to use
+	  proper value (a list) for the declaration-specifiers. Rule
+	  was assuming the semantic value was a tagged-list object.
+
+2020-06-01  V1.02.2
+	* nyacc/lex.scm(read-c-chlit): add eof-object case for L prefix
+	* nyexx/lex.scm(make-num-reader): complete rewrite: C specific
+	* examples/../tcl/parser.scm: cleaned up minor errors
+	* scripts/compile-ffi.scm: corrected order of dependent compiles
+
+2020-04-10  V1.02.1
+	* fixed critical bug in cxeval.scm(sizeof-mtail): case
+	  to filter out comments from struct-def and union-def
+	  was swapped (processing comments, skipping comp-decls)
+
+2020-04-08  V1.02.0
+	* The C99 AST, munger and ffi helper, were updated.
+	  updated C99 tree tags (e.g., array-of => ary-declr), and
+	  and narrowed use of abs-...-declr to lowest level. 
+	* udecl->mdecl was upated to use above updates: it's more robust,
+ 	  and it now generates (extern) tag for non-functions, to be
+	  used in a new implementation of the ffi helper (1.03?)
+	* reify-decl was added to make abstract C99 declarations concrete
+	* added arch-info: sizeof, alignof for multiple targets
+	* eval-c99-cx now works for sizeof(type)!
+	* expand-typerefs has been cleaned up: it seems more robust;
+	  many new test cases were added in c99-06.test.
+	* cleaned up ffi-helper ; no more warning on redefined symbols
+	  from guile 3.0; more enum/defines handled now that code to
+	  evaluate constant expressions is more capable
+	* module/nyacc/lalr.scm (make-lalr-parser): added another keyword
+	  argument `env' to specify the enviornment for generating
+	  the parser actions (default, @code{(current-module))})
+	* Added #:env keyword option to make-lalr-parser.  This is where
+	  the quoted actions are evaluated.
+	* Added FH uintptr_t intptr_t defines for use w/ guile-2.0.
+	* compile-ffi does not now produce .scm file on failure or ^C
+
+2020-03-13  V1.01.2
+	* fixed bug #57911, compile-ffi fails to parse function attributes 
+	  preceded by *; added production rule to pointer:
+	   ("*" attribute-specifiers ($$ '(pointer)))
+	* updated example tcl and mlang code
+	* fixed lex to accept F in 1.0e-3F;
+	* c99 cpp now handles blank #-line
+
+2020-02-22  V1.01.1 (V1.01.0 not released)
+	* read-only struct-vable fields in ffi-helper changed to writable:
+	  guile 3.0 deprecates read-only fields
+	* Split expand-typerefs from c99/munge.scm into c99/munge-base.scm.
+	  This should exliminate the warning about undefined expand-typerefs.
+	* Eliminated deprecated symbols from c99/munge.scm: udecl->mspec
+	  udecl->mspec/comm mspec->udecl tree->udict tree->udict/deep
+	  declr->ident match-decl match-comp-decl match-param-decl
+	  expand-decl-typerefs fix-fields.
+	* now installing examples in $(DATADIR)/nyacc/examples
+	* updated configure.ac to be guix-compatible
+	* changed configure : removed guile.m4 pkg.m4 nyacc.m4
+
+2020-01-07  V1.00.2
+	* updated configure scripts to handle 2.0.14 via
+	  --with-guile=/path/to/guile
+
+2019-12-29  V1.00.1
+	* in nyacc/util.scm, changed a letrec* to letrec
+	* in nyacc/lang/util.scm, changed a letrec* to let*
+	* updated all Makefile.in for autoconf conventions, using
+	  abs_top_builddir and abs_top_srcdir
+	* added test-suite/Makefile.in to replace lower level versions
+
+2019-12-23  V1.00.0
+	* Makefiles now use "$(MAKE)" instead of "make"
+	* changed order of udict, ddict arguments to canize-enum-def-list
+	* removed hacks from eval-cpp-expr prev used by canize-enum-def-list
+	* cleaned up cxeval failures
+
+2019-12-15  V0.99.3
+	* in ffi-help.scm, filter "libm" from being added to dynamic-link:
+	  on Ubuntu libm.so is a text file which referneces another libm.so;
+	  dlopen() does not follow the reference, so just filter out since it
+	  is already linked into guile
+	* the C parser still breaks where typedefs are used otherwise, like
+	    typedef int t; int foo(t *t);  // in libxlsxwriter
+	* updated canize-enum-defs to use c99-eval-cx instead of cpp-eval
+	  which was a hack; also cleaned up canize to work with comments
+	  as attributes instead of elements; added test case
+
+2019-10-23  V0.99.2 release
+	* 0.99.1 fix broke things: __extension__ is not function macro
+	* ffi-help does not load libm now (ubuntu bug?)
+
+2019-10-19  V0.99.1 release
+	* fixed nyacc/lang/c99/util.scm: in c99-def-help function macro
+	  aliases changed from "__foo=__foo__" to "__foo(X)=__foo__(X)"
+
+2019-07-20  V0.99.0 release
+	* added fixed-point types to C99 parser
+	  http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2001/n1290.pdf
+	  make-num-reader accepts 0.25hr uhr r ur lr ulr hk uhk k uk lk ulk
+
+	* cleaned up documentation
+
+2019-05-30  V0.94.0 release
+	* removed export statment from c99/util.scm
+
+	* started C99 documentation
+
+	* fixed some version number errors
+
+2019-05-30  V0.93.0 release
+	* reworked configure and Makefile.in files to detect doc
+	  install dirs;
+  
+	* this CPP feature now works: #define /* hello */ abc 123
+
+	* fixed issue in c99/eval-cpp-incl where #f was ending up in
+	  output if no include file found
+
+2019-04-02  V0.92.0 release
+	
+	* The distribution has been converted to using autoconf, but
+	  without automake, which brings in a lot of rubble, IMO.
+
+	* Fixed bug in the ffi-helper that was genering bad code for
+	  unions.
+
+2019-01-18  V0.91.0 release
+
+	* module/nyacc/parse.scm (dmsg/n): added ntab information; so
+	debug is now more informative:
+	OLD:
+	  state 99, token 33 => shift, goto 300
+	NEW:
+	  state 99, token additive-expression => shift, goto 300
+
+	* ffi-help: converting composite literal to constant is no longer
+	a fatal error
+
+	* module/nyacc/lang/c99/cxeval.scm (eval-c99-cx): added case for
+	comp-lit; made failure throw c99-error instead of calling error
+
+	* module/nyacc/lang/c99/ffi-help.scm: updated error handling when
+	cannot convert enum or #defined argument to a constant
+
+2018-11-29  V0.90.0 release
+
+	* module/nyacc/lang/c99/mach.scm (c99-spec): K&R function
+	definitions have been removed, since conflict with __attribute__,
+	as in: int foo(x) __attribute__ ((__bar__)) int x; { ... };
+	Is attribute associated with declarator or declaration-specifiers?
+
+	* update Major overhaul of __attribute__ handling in C99 parser
+
+	* update merged nx-matlab updates from nxdev branch; added fix
+	for nyacc/lex.scm to parse #xffff00000
+
+
+	* update reworked the nyacc parser.scm file (see nyacc/ChangeLog);
+	instead of separate parsers for interactive and non-interactive
+	there is now one make-lalr-parser with optional #:interactive
+	keyword argument; also added #:skip-if-unexp for skipping
+	unexpected tokens (e.g., for comments -- this is useful);
+
+	* update moved code from c99/xparser.scm into c99/parser.scm and
+	deleted c99/xparser
+
+	* update cleaned up C99 parser set up; the mapping between parse
+	tables and the lexical analyzer setup was brittle; cleaned up
+	circular dependency between the parser and lexical analyzer using
+	letrec; see c99/parser.scm and c99/body.scm
+
+	new release 0.85.0
+	* changed the integrated hashed vs unhashed parser was split into
+	/sym parsers for unhashed and /num for hashed.
+	* updated interactive parsers, getting ready to and integrate file
+	and interactive parsers, and overhaul C99 parser setup
+

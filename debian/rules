@@ -1,4 +1,11 @@
 #!/usr/bin/make -f
+export DH_VERBOSE = 1
 
 %:
-	dh $@
+	dh $@ --no-parallel
+
+override_dh_strip:
+	dh_strip --exclude=.go
+
+override_dh_dwz:
+	dh_dwz --exclude=.go

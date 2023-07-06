@@ -1,0 +1,158 @@
+;; nyacc/lex-01.test			-*- scheme -*-
+;;
+;; Copyright (C) 2015,2017,2019 Matthew R. Wette
+;;
+;; Copying and distribution of this file, with or without modification,
+;; are permitted in any medium without royalty provided the copyright
+;; notice and this notice are preserved.  This file is offered as-is,
+;; without any warranty.
+
+(define-module (lex-01)
+  #:use-module (nyacc lex)
+  #:use-module (test-suite lib))
+
+(define (sf fmt . args) (apply simple-format #t fmt args))
+
+(define (fold p s l)
+  (let loop ((s s) (l l))
+    (if (null? l) s (loop (p (car l) s) (cdr l)))))
+
+;; not used
+(define mt
+  (list
+   '("<=" . lteq)
+   '(">=" . gteq)
+   '("==" . eqeq)
+   '("<>" . ltgt)
+   '(".+" . dot-plus)
+   '(".-" . dot-minus)
+   '(".*" . dot-times)
+   '("./" . dot-divide)
+   '(".^" . dot-carat)
+   '(":=" . colon-eq)
+   '(class . class)
+   ))
+
+(define read-comm-1 (make-comm-reader '(("/*" . "*/") ("//" . "\n"))))
+
+(define (check-num pair) ;; pair = ("123" . $fixed)
+  (let* ((str (car pair)) (end (1- (string-length str))) (tok (cdr pair)))
+    (call-with-values
+	(lambda ()
+	  (catch 'nyacc-error
+	    (lambda ()
+	      (with-input-from-string str
+		(lambda ()
+		  (let* ((val (read-c-num (read-char)))
+			 (nch (read-char)))
+		    (values val nch)))))
+	    (lambda (key fmt . args)
+	      (values '$error (string-ref str end)))))
+      (lambda (val nch)
+	;;(sf "~S => ~S ~S\n" str val nch)
+	(if val
+	    (if (pair? val)
+		(and (eq? tok (car val))
+		     (string=? (substring str 0 end) (cdr val))
+		     (char=? (string-ref str end) nch))
+		(eq? val tok))
+	    (not tok))))))
+   
+(define ctr
+  (let ((p (make-count-reporter))) (register-reporter (car p)) ((cadr p))))
+(register-reporter full-reporter)
+
+(with-test-prefix "nyacc/lex-01"
+
+  ;; escape character
+  (pass-if "C char literals"
+    (fold
+     (lambda (pair pass)
+       (and pass
+            (string=?
+             (with-input-from-string (car pair)
+               (lambda () (or (and=> (read-c-chlit (read-char)) cdr) "")))
+	     (cdr pair))))
+     #t
+     '(("'\\177'" . "\x7f")
+       )))
+
+  (pass-if "C numeric literals"
+    (fold
+     (lambda (pair pass)
+       (and pass (check-num pair)))
+     #t
+     ;; fixed aka integers
+     '(;; fixed
+       ("0-" . $fixed) ("0l-" . $fixed) ("0ll-" . $fixed)
+       ("0ull-" . $fixed) ("0llu-" . $fixed)
+       ("1234-" . $fixed) ("123l-" . $fixed) ("12ll-" . $fixed)
+       ("1llu-" . $fixed) ("123u-" . $fixed) ("12ul-" . $fixed)
+       ("1ull-" . $fixed) ("123L-" . $fixed) ("12LL-" . $fixed)
+       ("1LLU-" . $fixed) ("123U-" . $fixed) ("12Ul-" . $fixed)
+       ("1ULl-" . $fixed)
+       ("0xbead-" . $fixed) ("0XBEAD-" . $fixed) 
+       ("01-" . $fixed) ("0b11-" . $fixed)
+       ;; float
+       ("12.34-" . $float) ("12.34e56-" . $float) ("12.34E56-" . $float)
+       ("12.34e+56-" . $float) ("1.-" . $float) (".1-" . $float)
+       (".1e0-" . $float) ("1.0e-34F-" . $float) ("12.l-" . $float)
+       (".1l-" . $float) ("12.34l-" . $float) ("1.0e-34l-" . $float)
+       ("1.0e-34f-" . $float) ("1.0e+34f-" . $float) ("0x7f.ffp0-" . $float)
+       ;; fixed point
+       ("0.25r-" . $fixpt) ("0.25ur-" . $fixpt) ("0.25lr-" . $fixpt) 
+       ("0.25ulr-" . $fixpt) ("0.25R-" . $fixpt) ("0.25UR-" . $fixpt)
+       ("0.25LR-" . $fixpt) ("0.25ULR-" . $fixpt) ("1.25k-" . $fixpt)
+       ("1.25uk-" . $fixpt) ("1.25lk-" . $fixpt) ("1.25ulk-" . $fixpt)
+       ("1.25K-" . $fixpt) ("1.25UK-" . $fixpt) ("1.25LK-" . $fixpt)
+       ("1.25ULK-" . $fixpt) ("0.25e-1r-" . $fixpt) ("0.25e-1ur-" . $fixpt)
+       ("0.25e-1lr-" . $fixpt) ("0.25e-1ulr-" . $fixpt) ("0.25R-" . $fixpt)
+       ("0.25UR-" . $fixpt) ("0.25LR-" . $fixpt) ("0.25ULR-" . $fixpt)
+       ("1r-" . $fixpt)
+       ;; decimal float
+       ("0.12dd-" . $decfl) ("0.12df-" . $decfl) ("0.12dl-" . $decfl)
+       ("0.12DD-" . $decfl) ("0.12DF-" . $decfl) ("0.12DL-" . $decfl)
+       ("3.4e3dd-" . $decfl) ("0.34e3dd-" . $decfl)
+       ;; bizarro float
+       ("1.23e45F128-" . $float)
+       ("1.23e45F32x-" . $float)
+       ;; errors and #f
+       ("08-" . $error) ("0b12-" . $error) ("3f-" . $error)
+       ("3dd-" . $error) (".-" . #f) ("." . #f)
+       )))
+
+  (pass-if "C strings"
+    (fold
+     (lambda (pair pass)
+       (and pass
+            (string=?
+             (with-input-from-string (car pair)
+               (lambda () (or (and=> (read-c-string (read-char)) cdr) "")))
+	     (cdr pair))))
+     #t
+     '(("\"\\177\"" . "\x7f")
+       )))
+
+  ;; Check that comment ending in newline does not eat the newline.
+  (pass-if "C comments"
+    (with-input-from-string "//abc\ndef"
+      (lambda ()
+	(let* ((tp (read-comm-1 (read-char) #f))
+	       (ch (read-char)))
+	  (and (equal? tp '($code-comm . "abc"))
+	       (equal? ch #\newline))))))
+
+  ;; C99 number string to Scheme number string (which works w/ string->number)
+  (pass-if "C num to Scheme num (as strings)"
+    (fold
+     (lambda (pair pass)
+       (and pass (string=? (cnumstr->scm (car pair)) (cdr pair))))
+     #t
+     '(("0L" . "0") ("01l" . "#o1") ("0LL" . "0")
+       ("0xa" . "#xa") ("0b11" . "#b11")
+       ("0123" . "#o123") ("1234" . "1234") ("0.1e10" . "0.1e10"))))
+
+  )
+
+(exit (if (positive? (assq-ref ctr 'fail)) 1 0))
+;; --- last line ---
